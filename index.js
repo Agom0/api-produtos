@@ -1,15 +1,9 @@
 const express = require('express')
 const app = express()
 const port = 6579
-const { Pool } = require('pg')
-
-const pool = new Pool({
-    user: 'postgres.hirucpyrgltwrqtgeocn',
-    host: 'aws-0-sa-east-1.pooler.supabase.com',
-    database: 'postgres',
-    password: '2FlordeEspinhos9',
-    port: 5432
-})
+const pool = require('./src/models/database')
+const produtosModel = require('./src/models/produtos')
+const produtosController = require ('./src/controllers/podutos')
 
 app.use(express.json())
 
@@ -31,14 +25,10 @@ app.post('/produtos', async (req, res) => {
     try {
         const produto = await pool.query(`
         INSERT INTO produtos (nome, preco, categoria, image_url)
-        VALUES (
-           '${nome}', 
-            ${preco}, 
-           '${categoria}', 
-           '${image_url}'
-        )
-           RETURNING *
-     `)
+        VALUES ($1, $2, $3, $4)
+          RETURNING *
+
+     `, [nome, preco, categoria, image_url])
 
         res.status(201).send(produto.rows[0])
     } catch (error) {
@@ -47,16 +37,77 @@ app.post('/produtos', async (req, res) => {
     }
 })
 
-app.get('/produtos', async (req, res) => {
-    try {
-        const produtos = await pool.query('SELECT * FROM produtos')
+app.get('/produtos', produtosController.getProdutos)
 
-        return res.status(200).send(produtos.rows)
+app.get('/produtos/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const produto = await pool.query(`
+        SELECT * FROM produtos WHERE id = $1
+        `, [id])
+
+        if (!produto.rows.length) {
+            return res.status(404).send('produto não encontrado')
+        }
+
+        return res.send(produto.rows[0])
     } catch (error) {
         console.error(error)
-        return res.status(500).send('Erro ao buscar produtos')
+        return res.status(500).send('Erro ao buscar produto')
+
     }
 })
+
+app.delete('/produtos/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const produto = await pool.query(`
+            SELECT * FROM produtos WHERE id = $1
+            `, [id])
+
+        if (!produto.rows.length) {
+            return res.status(404).send('Produto não encontrado')
+        }
+
+        await pool.query(`
+            DELETE FROM produtos WHERE id = $1
+            `, [id])
+
+        return res.status(202).send('Produto deletado com sucesso')
+    } catch (error) {
+        return res.status(500).send('Erro ao deletar o produto')
+
+    }
+})
+
+app.put('/produtos/:id', async (req, res) => {
+    const { id } = req.params;
+    const { nome, preco, categoria, image_url } = req.body;
+
+    try {
+        const produto = await pool.query('SELECT * FROM produtos WHERE id = $1', [id])
+
+        if (!produto.rows.length) {
+            return res.status(400).send('Produto não encontrado')
+        }
+        await pool.query(`
+        UPDATE produtos SET
+        nome = $1,
+        preco = $2,
+        categoria = $3,
+        image_url = $4
+        WHERE id = $5
+        `, [nome, preco, categoria, image_url, id])
+        return res.status(200).send('Produto atualizado com sucesso')
+    } catch (error) {
+        console.error(error)
+        return res.status(500).send('Erro ao atualizar o produto')
+    }
+
+})
+
 app.listen(port, () => {
     console.log(`O servidor está rodando na porta ${port}`)
 })
