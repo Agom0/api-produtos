@@ -12,6 +12,19 @@ async function getProdutos(req, res) {
   }  
 }
 
+async function createProdudo(req, res) {
+    try {
+        const produto = await produtosModel.createProdudo(req.body)
+
+        return res.status(201).send(produto)
+    } catch (error) {
+        console.error(error)
+        return res.status(500). send('Erro ao criar produto')
+    }
+    
+}
+
 module.exports = {
-    getProdutos
+    getProdutos,
+    createProdudo
 }
