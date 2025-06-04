@@ -14,6 +14,10 @@ async function getProdutos(req, res) {
 
 async function createProdudo(req, res) {
     try {
+      const {nome, categoria, preco, image_url} = req.body;
+      if (!nome || !categoria || !preco || !image_url) {
+        return res.status(400).send('Todos os campos são obrigatórios')
+      }
         const produto = await produtosModel.createProdudo(req.body)
 
         return res.status(201).send(produto)
