@@ -1,4 +1,4 @@
-const produtosModel = require ('../models/produtos')
+const produtosModel = require('../models/produtos')
 
 
 async function getProdutos(req, res) {
@@ -7,28 +7,36 @@ async function getProdutos(req, res) {
 
     return res.send(produtos)
   } catch (error) {
-    console.error (error)
+    console.error(error)
     return res.status(500).send('Erro ao bruscar produtos')
-  }  
+  }
 }
 
 async function createProdudo(req, res) {
-    try {
-      const {nome, categoria, preco, image_url} = req.body;
-      if (!nome || !categoria || !preco || !image_url) {
-        return res.status(400).send('Todos os campos são obrigatórios')
-      }
-        const produto = await produtosModel.createProdudo(req.body)
+  try {
+    const produto = await produtosModel.createProdudo(req.body)
 
-        return res.status(201).send(produto)
-    } catch (error) {
-        console.error(error)
-        return res.status(500). send('Erro ao criar produto')
-    }
-    
+    return res.status(201).send(produto)
+  } catch (error) {
+    console.error(error)
+    return res.status(500).send('Erro ao criar produto')
+  }
+}
+
+async function deleteProduto(req, res) {
+  const {id} = req.params;
+  try {
+    await produtosModel.deleteProduto(id)
+
+    return res.status(202).send('Produto deletado com sucesso')
+  } catch (error) {
+    console.error(error)
+    return res.status(500).send('Erro ao deletar o produto')
+  }
 }
 
 module.exports = {
-    getProdutos,
-    createProdudo
+  getProdutos,
+  createProdudo,
+  deleteProduto
 }

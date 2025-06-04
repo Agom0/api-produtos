@@ -27,7 +27,19 @@ async function createProdudo(produto) {
     }
 }
 
+async function deleteProduto(id) {
+    try {
+        await pool.query(` 
+            DELETE FROM produtos WHERE id = $1
+            `, [id])
+    } catch (ERROR) {
+        console.error(error)
+        throw new Error('Erro ao detetar o produto')
+    }
+}
+
 module.exports = {
     getProdutos,
-    createProdudo
+    createProdudo,
+    deleteProduto
 }
