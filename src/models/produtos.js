@@ -34,7 +34,7 @@ async function deleteProduto(id) {
             `, [id])
     } catch (ERROR) {
         console.error(error)
-        throw new Error('Erro ao detetar o produto')
+        throw new Error('Erro ao deletar o produto')
     }
 }
 
