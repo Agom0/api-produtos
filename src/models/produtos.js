@@ -1,45 +1,27 @@
-const pool = require("./database")
+const { sequelize, DataTypes } = require('sequelize')
+const { sequelize } = require('../config/database')
 
-async function getProdutos() {
-    const produtos = await pool.query('SELECT * FROM produtos')
-
-    return produtos.rows
-}
-
-async function createProdudo(produto) {
-    try {
-        const insertProduto = await pool.query(`
-           INSERT INTO produtos
-           (nome, categoria, preco, image_url) 
-           VALUES ($1, $2, $3, $4)
-           RETURNING*
-        `, [
-            produto.nome,
-            produto.categoria,
-            produto.preco,
-            produto.image_url
-        ])
-
-        return insertProduto.rows[0]
-    } catch (error) {
-        console.error(error)
-        throw new Error('Erro ao criar produto')
+const Produtos = sequelize.define('produtos', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
+    nome: {
+        type: DataTypes.STRING,
+        allowNULL: false
+    },
+    preco: {
+        type: DataTypes.FLOAT,
+        allowNULL: false
+    },
+    categoria: {
+        type: DataTypes.STRING,
+        allowNULL: false
+    },
+    image_url: {
+        type: DataTypes.TEXT
     }
-}
+})
 
-async function deleteProduto(id) {
-    try {
-        await pool.query(` 
-            DELETE FROM produtos WHERE id = $1
-            `, [id])
-    } catch (ERROR) {
-        console.error(error)
-        throw new Error('Erro ao deletar o produto')
-    }
-}
-
-module.exports = {
-    getProdutos,
-    createProdudo,
-    deleteProduto
-}
+module.exports = Produtos
